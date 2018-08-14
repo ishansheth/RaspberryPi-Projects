@@ -13,6 +13,10 @@
 
 #define PORT 8080
 
+
+const int CHUNKSIZE = 900;
+const int NUMGYROAXIS = 3;
+
 int main(){
 
   L3G4200D gyroCtrl;
@@ -29,7 +33,7 @@ int main(){
   const char* gyrostart = "GYRODATA";
   const char* ok = "OK";
   
-  float* gyroData = new float[3];
+  float* gyroData = new float[CHUNKSIZE];
   
   if((server_fd = socket(AF_INET,SOCK_STREAM,0)) == 0){
     std::cout<<"socket failed"<<std::endl;
@@ -68,22 +72,17 @@ int main(){
   if(!receivedData.compare("OK")){
     std::cout<<"Gyro reading"<<std::endl;
     while(1){
-	    	  gyroCtrl.update();
-		  gyroData[0] = gyroCtrl.getGyroX();
-		  gyroData[1] = gyroCtrl.getGyroY();
-		  gyroData[2] = gyroCtrl.getGyroZ();
-		  std::cout<<"Sending:"<<gyroData[0]<<"  "<<gyroData[1]<<"  "<<gyroData[2]<<"  "<<std::endl;
-		  sleep(1);
-		  send(new_socket,gyroData,3*sizeof(float),0);
-		  valread = read(new_socket,buffer,2);
-		  std::string response = buffer;
-		  std::cout<<"Received:"<<response<<std::endl;
-		  if(response.compare("OK")){
-		    std::cout<<"client did not say OK, stopping sending"<<std::endl;
-    		    break;
-		  }
-	  }
-      
-    }
-  
+      memset(gyroData,0,CHUNKSIZE*sizeof(float));
+      std::cout<<"Sending-----"<<std::endl;
+      for(int i = 0;i<CHUNKSIZE/NUMGYROAXIS;i=i+3){
+	gyroCtrl.update();
+	gyroData[i] = gyroCtrl.getGyroX();
+	gyroData[i+1] = gyroCtrl.getGyroY();
+	gyroData[i+2] = gyroCtrl.getGyroZ();
+	std::cout<<"Sending:"<<gyroData[i]<<" "<<gyroData[i+1]<<" "<<gyroData[i+2]<<std::endl;
+      }
+      sleep(1);		  
+      send(new_socket,gyroData,CHUNKSIZE*sizeof(float),0);
+    }      
+  }
 }

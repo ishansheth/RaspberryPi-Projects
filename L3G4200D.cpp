@@ -17,7 +17,7 @@ bool L3G4200D::init(int scale){
   if(fd == -1)
     return false;
 
-  wiringPiI2CWriteReg8(fd,CTRL_REG1,0b00001111);
+  wiringPiI2CWriteReg8(fd,CTRL_REG1,0b10001111);
 
   if(scale == 250)
     wiringPiI2CWriteReg8(fd,CTRL_REG4,0b10000000);
@@ -31,7 +31,7 @@ bool L3G4200D::init(int scale){
 
 void L3G4200D::update(){
   unsigned int statusRegBit = wiringPiI2CReadReg8(fd,STATUS_REG);
-  std::cout<<"status reg val:"<<std::hex<<statusRegBit<<std::endl;
+  //  std::cout<<"status reg val:"<<std::hex<<statusRegBit<<std::endl;
   
   uint8_t X1 = wiringPiI2CReadReg8(fd,L3G4200D_REG_XM);
   uint8_t X0 = wiringPiI2CReadReg8(fd,L3G4200D_REG_XL);
