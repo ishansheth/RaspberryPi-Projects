@@ -28,7 +28,7 @@ int main(){
   int opt = 1;
   
   int addrlen = sizeof(address);
-  char buffer[10] = {0};
+  char buffer[100] = {0};
 
   const char* gyrostart = "GYRODATA";
   const char* ok = "OK";
@@ -66,7 +66,7 @@ int main(){
   
   send(new_socket,gyrostart,strlen(gyrostart),0);
 
-  valread = recv(new_socket,buffer,5,0);
+  valread = recv(new_socket,buffer,100,0);
   std::string receivedData = buffer;
   std::cout<<"client response:"<<buffer<<std::endl;
   if(!receivedData.compare("OK")){
