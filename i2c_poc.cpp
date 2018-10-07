@@ -13,8 +13,7 @@
 
 #define PORT 8080
 
-
-const int CHUNKSIZE = 900;
+const int CHUNKSIZE = 30;
 const int NUMGYROAXIS = 3;
 
 int main(){
@@ -30,10 +29,11 @@ int main(){
   int addrlen = sizeof(address);
   char buffer[100] = {0};
 
-  const char* gyrostart = "GYRODATA";
+  const char* sensorstart = "GYRODATA";
   const char* ok = "OK";
   
   float* gyroData = new float[CHUNKSIZE];
+  float* accData  = new float[CHUNKSIZE];
   
   if((server_fd = socket(AF_INET,SOCK_STREAM,0)) == 0){
     std::cout<<"socket failed"<<std::endl;
@@ -64,7 +64,7 @@ int main(){
     exit(EXIT_FAILURE);            
   }
   
-  send(new_socket,gyrostart,strlen(gyrostart),0);
+  send(new_socket,sensorstart,strlen(sensorstart),0);
 
   valread = recv(new_socket,buffer,100,0);
   std::string receivedData = buffer;
@@ -74,14 +74,14 @@ int main(){
     while(1){
       memset(gyroData,0,CHUNKSIZE*sizeof(float));
       std::cout<<"Sending-----"<<std::endl;
-      for(int i = 0;i<CHUNKSIZE/NUMGYROAXIS;i=i+3){
-	gyroCtrl.update();
-	gyroData[i] = gyroCtrl.getGyroX();
-	gyroData[i+1] = gyroCtrl.getGyroY();
-	gyroData[i+2] = gyroCtrl.getGyroZ();
+      for(int i = 0;i<CHUNKSIZE;i=i+3){
+	acclCtrl.update();
+	gyroData[i] = acclCtrl.getAccX();
+	gyroData[i+1] = acclCtrl.getAccY();
+	gyroData[i+2] = acclCtrl.getAccZ();
 	std::cout<<"Sending:"<<gyroData[i]<<" "<<gyroData[i+1]<<" "<<gyroData[i+2]<<std::endl;
       }
-      sleep(1);		  
+      sleep(1);
       send(new_socket,gyroData,CHUNKSIZE*sizeof(float),0);
     }      
   }
