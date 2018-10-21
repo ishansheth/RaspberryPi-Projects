@@ -67,22 +67,32 @@ int main(){
   send(new_socket,sensorstart,strlen(sensorstart),0);
 
   valread = recv(new_socket,buffer,100,0);
+
   std::string receivedData = buffer;
   std::cout<<"client response:"<<buffer<<std::endl;
+  memset(buffer,0,sizeof(buffer));
+
   if(!receivedData.compare("OK")){
     std::cout<<"Gyro reading"<<std::endl;
     while(1){
+      std::cout<<"waiting for send command......"<<std::endl;
+      valread = recv(new_socket,buffer,100,0);
+      receivedData = buffer;
+
+      memset(buffer,0,sizeof(buffer));
       memset(gyroData,0,CHUNKSIZE*sizeof(float));
-      std::cout<<"Sending-----"<<std::endl;
-      for(int i = 0;i<CHUNKSIZE;i=i+3){
-	acclCtrl.update();
-	gyroData[i] = acclCtrl.getAccX();
-	gyroData[i+1] = acclCtrl.getAccY();
-	gyroData[i+2] = acclCtrl.getAccZ();
+
+      if(!receivedData.compare("SEND")){
+	std::cout<<"Sending-----"<<std::endl;
+	for(int i = 0;i<CHUNKSIZE;i=i+3){
+	  acclCtrl.update();
+	  gyroData[i] = acclCtrl.getAccX();
+	  gyroData[i+1] = acclCtrl.getAccY();
+	  gyroData[i+2] = acclCtrl.getAccZ();
 	std::cout<<"Sending:"<<gyroData[i]<<" "<<gyroData[i+1]<<" "<<gyroData[i+2]<<std::endl;
+	}
+	send(new_socket,gyroData,CHUNKSIZE*sizeof(float),0);
       }
-      sleep(1);
-      send(new_socket,gyroData,CHUNKSIZE*sizeof(float),0);
     }      
   }
 }
