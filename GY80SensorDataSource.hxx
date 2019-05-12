@@ -66,7 +66,6 @@ class SensorDataSource{
 
     while(readbytes != chunkSize*sizeof(float)){
       receivedBytesChunk = read(m_clientSock,m_sensorData+readbytes,chunkSize*sizeof(float)-readbytes);
-      std::cout<<"Received-----"<<receivedBytesChunk<<std::endl;
       if(receivedBytesChunk > 0)
 	readbytes += receivedBytesChunk;
       else if(receivedBytesChunk == 0){
@@ -86,7 +85,6 @@ class SensorDataSource{
     while(1){
       std::unique_lock<std::mutex> lk(m_bufferSyncMutex);
       m_bufferSyncVar.wait(lk,[this](){return dataBufferQueue.size() < 5;});
-      std::cout<<"Getting data from server...."<<std::endl;
       if(readBytesQueue(15)>0){
       }else{
 	std::cout<<"Bytes can not be read from server,terminating thread"<<std::endl;

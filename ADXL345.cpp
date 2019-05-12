@@ -18,10 +18,12 @@ void ADXL345::init(){
 
   int dataformat = wiringPiI2CReadReg8(fd,DATA_FORMAT);
 
+  /**
   dataformat &= ~0x0F;
   dataformat |= RANGE_2G;
   dataformat |= 0x08;
-
+  **/
+  dataformat = 0x00;
   wiringPiI2CWriteReg8(fd,DATA_FORMAT,dataformat);
 
   wiringPiI2CWriteReg8(fd,POWER_CTL,MEASURE);
