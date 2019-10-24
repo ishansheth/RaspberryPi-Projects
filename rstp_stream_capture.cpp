@@ -65,6 +65,7 @@ int main(){
      This can be done via environment variable
      More info --> https://ffmpeg.org/ffmpeg-protocols.html
    **/
+  
   setenv("OPENCV_FFMPEG_CAPTURE_OPTIONS","protocol_whitelist;file,rtp,udp",1);
   
   cv::VideoCapture* stream = new cv::VideoCapture("rpi_streaming.sdp");

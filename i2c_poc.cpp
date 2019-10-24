@@ -1,20 +1,25 @@
-#include<iostream>
-#include<errno.h>
-#include<wiringPiI2C.h>
-#include<unistd.h>
-#include<sys/socket.h>
-#include<stdlib.h>
-#include<netinet/in.h>
+#include <iostream>
+#include <errno.h>
+#include <wiringPiI2C.h>
+#include <unistd.h>
+#include <sys/socket.h>
+#include <stdlib.h>
+#include <netinet/in.h>
 #include "L3G4200D.h"
 #include "ADXL345.h"
 #include <string.h>
 #include <unistd.h>
 #include <string>
-
-#define PORT 8080
+#include <sys/epoll.h>
+#include <sys/types.h>
+#include <arpa/inet.h>
+#include <netdb.h>
+#include <fcntl.h>
+#include <stdio.h>
 
 const int CHUNKSIZE = 30;
 const int NUMGYROAXIS = 3;
+#define PORT 8080
 
 int main(){
 
@@ -75,7 +80,6 @@ int main(){
   if(!receivedData.compare("OK")){
     std::cout<<"Gyro reading"<<std::endl;
     while(1){
-      std::cout<<"waiting for send command......"<<std::endl;
       valread = recv(new_socket,buffer,100,0);
       receivedData = buffer;
 
@@ -83,13 +87,11 @@ int main(){
       memset(gyroData,0,CHUNKSIZE*sizeof(float));
 
       if(!receivedData.compare("SEND")){
-	std::cout<<"Sending-----"<<std::endl;
 	for(int i = 0;i<CHUNKSIZE;i=i+3){
 	  acclCtrl.update();
 	  gyroData[i] = acclCtrl.getAccX();
 	  gyroData[i+1] = acclCtrl.getAccY();
 	  gyroData[i+2] = acclCtrl.getAccZ();
-	std::cout<<"Sending:"<<gyroData[i]<<" "<<gyroData[i+1]<<" "<<gyroData[i+2]<<std::endl;
 	}
 	send(new_socket,gyroData,CHUNKSIZE*sizeof(float),0);
       }
