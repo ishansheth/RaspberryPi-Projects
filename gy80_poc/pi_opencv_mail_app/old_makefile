@@ -1,0 +1,14 @@
+objects = main_exe.o gpio_class.o
+libs = -lopencv_core -lopencv_imgproc -lopencv_highgui -lopencv_ml -lopencv_video -lopencv_features2d -lopencv_calib3d -lopencv_objdetect -lopencv_contrib -lopencv_legacy -lopencv_flann -lcurl -lpthread
+
+image_capture: $(objects)
+		g++ -o image_capture $(objects) $(libs)
+
+main.o: main_exe.cpp gpio_class.h
+	g++ -c main_exe.cpp
+
+gpio_class.o: gpio_class.cpp gpio_class.h
+	g++ -c gpio_class.cpp
+
+clean:
+	rm image_capture $(objects)

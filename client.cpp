@@ -1,102 +1,63 @@
-#include <sys/socket.h>
-#include <sys/types.h>
-#include <netinet/in.h>
-#include <netdb.h>
-#include <stdio.h>
-#include <string.h>
-#include <stdlib.h>
-#include <unistd.h>
-#include <errno.h>
 #include <iostream>
+#include <string>
+extern "C"{
+#include<stdio.h>
+#include<sys/socket.h>
+#include<netinet/in.h>
+#include<arpa/inet.h>
+#include<string.h>
+}
 
-int main(int argc,char* argv[]){
+#define PORT 8080
 
-  if(argc != 3){
-    printf("please provide address and port\n");
-    exit(1);
+int main(){
+  struct sockaddr_in address;
+  int sock = 0,valread;
+  struct sockaddr_in serv_addr,client_addr;
+  const char* hello = "hello from client";
+  const char* ok = "OK";
+  char buffer[1024] = {0};
+  float* gyroData =  new float[3];
+
+
+  if((sock = socket(AF_INET,SOCK_STREAM,0))<0){
+    printf("socket can not be created");
+    return -1;
   }
 
-  int sock;
+  serv_addr.sin_addr.s_addr = inet_addr("169.254.133.250");
+  serv_addr.sin_family = AF_INET;
+  serv_addr.sin_port = htons(PORT);
 
-  char send_data[1024];
-
-  /**
-     structure definition for reference
-
-  struct  hostent {
-        char    *h_name;        
-        char    **h_aliases;    
-        int     h_addrtype;     
-        int     h_length;       
-        char    **h_addr_list;  
-        #define h_addr  h_addr_list[0]  
-	};
-
-  **/
-		      
-  struct hostent* host;
-
-  /**
-     structure definition for reference
-
-  struct sockaddr_in {
-     short   sin_family;
-     u_short sin_port;
-     struct  in_addr sin_addr;
-     char    sin_zero[8];
-  };
-
-  **/
   
-  struct sockaddr_in server_addr;
-
-  host = gethostbyname(argv[1]);
-
-  unsigned short port;
-  
-  sscanf(argv[2],"%d",&port);
-  
-  if((sock = socket(AF_INET,SOCK_STREAM,0)) == -1){
-    perror("Socket");
-    exit(1);
+  if(bind(sock,(struct sockaddr*)&serv_addr,sizeof(serv_addr))<0){
+    printf("could not connect");
+    return -1;
   }
 
-  server_addr.sin_family = AF_INET;
-  server_addr.sin_port = htons(port);
+  listen(sock,5);
 
-  server_addr.sin_addr = *((struct in_addr*) host->h_addr);
+  socklen_t clilen = sizeof(client_addr);
 
-  bzero(&(server_addr.sin_zero),8);
+  int newsockfd = accept(sock,(struct sockaddr*)&client_addr,&clilen);
 
-  if(connect(sock,(struct sockaddr*)&server_addr,sizeof(server_addr)) == -1){
-    perror("connect");
-    exit(1);
-  }
-
-  const char* cmd = "GYRODATASEND";
-  float sensorData[3];
-
-  std::cout<<"sending command to server"<<std::endl;
-  send(sock,cmd,strlen(cmd),0);
+  if(newsockfd < 0)
+    std::cerr<<"ERROR on accept"<<std::endl;
 
   
-  while(1){
+  valread = recv(newsockfd,buffer,1024,0);
 
-    std::cout<<"reading-----"<<std::endl;
-    int readbytes = read(sock,sensorData,3*sizeof(float));
-
-    if(readbytes > 0){
-      std::cout<<sensorData[0]<<std::endl;
-      std::cout<<sensorData[1]<<std::endl;
-      std::cout<<sensorData[2]<<std::endl;
-    }else if(readbytes == 0){
-      std::cout<<"server closed the connection"<<std::endl;
-      break;
-    }      
- 
-  }
-
-  close(sock);
+  std::string servResponse = buffer;
+  std::cout<<"First Server Response:"<<servResponse<<std::endl;
   
+  if(!servResponse.compare("GYRODATA")){
+    std::cout<<"Starting to receive gyrodata from server"<<std::endl;
+    send(newsockfd,ok,strlen(ok),0);
+    while(1){
+      valread = recv(newsockfd,gyroData,3*sizeof(float),0);
+      std::cout<<"Received Gyro Data:"<<gyroData[0]<<"  "<<gyroData[1]<<"  "<<gyroData[2]<<std::endl;
+      send(newsockfd,ok,strlen(ok),0);
+    }
+  }
   return 0;
 }
