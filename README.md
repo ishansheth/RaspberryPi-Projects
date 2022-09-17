@@ -11,11 +11,15 @@ This repository contains a sample program in C++ of interfacing raspberry pi wit
 
 To connect to new wifi station:
 
-Add below lines to sudo nano /etc/wpa_supplicant/wpa_supplicant.conf
+Add below lines to _sudo nano /etc/wpa_supplicant/wpa_supplicant.conf_
 
 network={
+
     ssid="You SSID Name"
+    
     psk="Your WiFI Password"
+    
     key_mgmt=WPA-PSK
+    
 }
 
